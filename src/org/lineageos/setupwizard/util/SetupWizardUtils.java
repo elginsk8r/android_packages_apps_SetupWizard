@@ -55,7 +55,7 @@ import org.lineageos.setupwizard.SetupWizardApp;
 import java.io.File;
 import java.util.List;
 
-import lineageos.providers.LineageSettings;
+import evervolv.provider.EVSettings;
 
 public class SetupWizardUtils {
 
@@ -300,12 +300,12 @@ public class SetupWizardUtils {
     }
 
     private static void writeDisableNavkeysOption(Context context, boolean enabled) {
-        final boolean virtualKeysEnabled = LineageSettings.System.getIntForUser(
-                context.getContentResolver(), LineageSettings.System.FORCE_SHOW_NAVBAR, 0,
+        final boolean virtualKeysEnabled = EVSettings.Secure.getIntForUser(
+                context.getContentResolver(), EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0,
                 UserHandle.USER_CURRENT) != 0;
         if (enabled != virtualKeysEnabled) {
-            LineageSettings.System.putIntForUser(context.getContentResolver(),
-                    LineageSettings.System.FORCE_SHOW_NAVBAR, enabled ? 1 : 0,
+            EVSettings.Secure.putIntForUser(context.getContentResolver(),
+                    EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, enabled ? 1 : 0,
                     UserHandle.USER_CURRENT);
         }
     }

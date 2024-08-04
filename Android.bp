@@ -25,7 +25,7 @@ android_app {
         "setupcompat",
         "setupdesign",
         "SystemUISharedLib",
-        "org.lineageos.platform.internal",
+        "com.evervolv.platform.internal",
     ],
 
     libs: ["telephony-common"],
