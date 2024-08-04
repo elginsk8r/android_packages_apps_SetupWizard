@@ -4,5 +4,7 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
+    <color name="lineage_accent">@color/sud_color_accent_glif_v3_dark</color>
+
     <color name="divider">#40ffffff</color>
 </resources>
