@@ -15,9 +15,11 @@ import static org.lineageos.setupwizard.SetupWizardApp.NAVIGATION_OPTION_KEY;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.UserHandle;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
@@ -25,17 +27,42 @@ import com.airbnb.lottie.LottieAnimationView;
 
 import org.lineageos.setupwizard.util.SetupWizardUtils;
 
+import evervolv.hardware.HardwareManager;
+import evervolv.provider.EVSettings;
+
 public class NavigationSettingsActivity extends BaseSetupWizardActivity {
 
     private SetupWizardApp mSetupWizardApp;
 
+    private CheckBox mNavKeys;
+
     private String mSelection = NAV_BAR_MODE_GESTURAL_OVERLAY;
+
+    private boolean mSupportsKeyDisabler = false;
+
+    private final View.OnClickListener mNavKeysClickListener = view -> {
+        boolean checked = !mNavKeys.isChecked();
+        mNavKeys.setChecked(checked);
+        mSetupWizardApp.getSettingsBundle().putBoolean(DISABLE_NAV_KEYS, checked);
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mSetupWizardApp = (SetupWizardApp) getApplication();
+
+        View navKeysRow = findViewById(R.id.nav_keys);
+        navKeysRow.setOnClickListener(mNavKeysClickListener);
+        mNavKeys = findViewById(R.id.nav_keys_checkbox);
+        mSupportsKeyDisabler = isKeyDisablerSupported(this);
+        if (mSupportsKeyDisabler) {
+            mNavKeys.setChecked(EVSettings.Secure.getIntForUser(getContentResolver(),
+                    EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0, UserHandle.USER_CURRENT) != 0);
+        } else {
+            navKeysRow.setVisibility(View.GONE);
+        }
+
         boolean navBarEnabled = false;
         if (mSetupWizardApp.getSettingsBundle().containsKey(DISABLE_NAV_KEYS)) {
             navBarEnabled = mSetupWizardApp.getSettingsBundle().getBoolean(DISABLE_NAV_KEYS);
@@ -100,6 +127,12 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        updateDisableNavkeysOption();
+    }
+
+    @Override
     protected void onNextPressed() {
         mSetupWizardApp.getSettingsBundle().putString(NAVIGATION_OPTION_KEY, mSelection);
         super.onNextPressed();
@@ -118,5 +151,23 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
     @Override
     protected int getIconResId() {
         return R.drawable.ic_navigation;
+    }
+
+    private void updateDisableNavkeysOption() {
+        if (mSupportsKeyDisabler) {
+            final Bundle myPageBundle = mSetupWizardApp.getSettingsBundle();
+            boolean enabled = EVSettings.Secure.getIntForUser(getContentResolver(),
+                    EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0, UserHandle.USER_CURRENT) != 0;
+            boolean checked = myPageBundle.containsKey(DISABLE_NAV_KEYS) ?
+                    myPageBundle.getBoolean(DISABLE_NAV_KEYS) :
+                    enabled;
+            mNavKeys.setChecked(checked);
+            myPageBundle.putBoolean(DISABLE_NAV_KEYS, checked);
+        }
+    }
+
+    private static boolean isKeyDisablerSupported(Context context) {
+        final HardwareManager hardware = HardwareManager.getInstance(context);
+        return hardware.isSupported(HardwareManager.FEATURE_KEY_DISABLE);
     }
 }
